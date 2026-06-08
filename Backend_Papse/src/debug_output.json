@@ -1,0 +1,85 @@
+{
+  "regulares": [
+    {
+      "idRegular": 4,
+      "data_inicio_atendimento": "2025-12-12T00:00:00.000Z",
+      "qtde_sessoes": 0,
+      "idPaciente": 5,
+      "idBolsista": 2,
+      "paciente": {
+        "idPaciente": 5,
+        "nome": "Gislene Aparecida",
+        "matricula": "45454545",
+        "data_nascimento": "2000-03-21T00:00:00.000Z",
+        "telefone": "94988051122",
+        "data_inscricao": "2025-12-12T00:00:00.000Z",
+        "relato": "dqdqwd",
+        "curso": "ec"
+      },
+      "colaborador": {
+        "idBolsista": 2,
+        "nome": "Matheus",
+        "matricula": "BOLSISTA001",
+        "data_admissao": "2025-01-01T00:00:00.000Z",
+        "data_saida": null,
+        "senha": "$2b$10$XJ/dF7gDI9MUsXx3t7NH1ezS/T/11ExGUZdiBBXzkWsUhltesvjKa",
+        "role": "BOLSISTA"
+      }
+    },
+    {
+      "idRegular": 5,
+      "data_inicio_atendimento": "2025-12-12T00:00:00.000Z",
+      "qtde_sessoes": 0,
+      "idPaciente": 6,
+      "idBolsista": 2,
+      "paciente": {
+        "idPaciente": 6,
+        "nome": "andre souza",
+        "matricula": "252442",
+        "data_nascimento": "2000-09-21T00:00:00.000Z",
+        "telefone": "94988054901",
+        "data_inscricao": "2025-12-12T00:00:00.000Z",
+        "relato": "gjjh",
+        "curso": "si"
+      },
+      "colaborador": {
+        "idBolsista": 2,
+        "nome": "Matheus",
+        "matricula": "BOLSISTA001",
+        "data_admissao": "2025-01-01T00:00:00.000Z",
+        "data_saida": null,
+        "senha": "$2b$10$XJ/dF7gDI9MUsXx3t7NH1ezS/T/11ExGUZdiBBXzkWsUhltesvjKa",
+        "role": "BOLSISTA"
+      }
+    }
+  ],
+  "colaboradores": [
+    {
+      "idBolsista": 1,
+      "nome": "Matheus",
+      "matricula": "ADMIN001",
+      "data_admissao": "2025-01-01T00:00:00.000Z",
+      "data_saida": null,
+      "senha": "$2b$10$CF.RaBXwyztwbVLairv35uvjIq.SORJETW0agfmQ5aaZthtsR4A3W",
+      "role": "ADMIN"
+    },
+    {
+      "idBolsista": 2,
+      "nome": "Matheus",
+      "matricula": "BOLSISTA001",
+      "data_admissao": "2025-01-01T00:00:00.000Z",
+      "data_saida": null,
+      "senha": "$2b$10$XJ/dF7gDI9MUsXx3t7NH1ezS/T/11ExGUZdiBBXzkWsUhltesvjKa",
+      "role": "BOLSISTA"
+    },
+    {
+      "idBolsista": 3,
+      "nome": "André",
+      "matricula": "BOLSISTA002",
+      "data_admissao": "2025-01-01T00:00:00.000Z",
+      "data_saida": null,
+      "senha": "$2b$10$L1Kswq/dKHia/7CKetSbkeBlnUAQcfn9Rt0q11cZFI9k9R4A.nF4e",
+      "role": "BOLSISTA"
+    }
+  ]
+}
