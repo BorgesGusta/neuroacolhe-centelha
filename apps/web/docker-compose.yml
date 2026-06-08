@@ -1,0 +1,16 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+    container_name: neuroacolhe-web
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - neuroacolhe_network
+
+networks:
+  neuroacolhe_network:
+    driver: bridge
