@@ -16,3 +16,6 @@ src/generated/
 
 .DS_Store
 Thumbs.db
+
+# Arquivo de contexto interno - não versionar
+CLAUDE_CODE_NEUROACOLHE.md
