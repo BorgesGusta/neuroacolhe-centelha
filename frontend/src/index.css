@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.55;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+h1 { font-size: 32px; }
+@media (min-width: 768px) { h1 { font-size: 44px; } }
+
+h2 { font-size: 26px; }
+@media (min-width: 768px) { h2 { font-size: 32px; } }
+
+[data-font-accessible="true"] * {
+  font-family: 'Atkinson Hyperlegible', system-ui, sans-serif !important;
+}
+
+/* Accessibility Font Size Scaling */
+[data-font-size="lg"] {
+  font-size: 1.15rem;
+}
+[data-font-size="lg"] h1 { font-size: 2.25rem; }
+[data-font-size="lg"] h2 { font-size: 1.85rem; }
+[data-font-size="lg"] h3 { font-size: 1.5rem; }
+
+[data-font-size="xl"] {
+  font-size: 1.3rem;
+}
+[data-font-size="xl"] h1 { font-size: 2.5rem; }
+[data-font-size="xl"] h2 { font-size: 2.1rem; }
+[data-font-size="xl"] h3 { font-size: 1.75rem; }
+
+/* Dyslexic Font support */
+[data-font-dyslexic="true"] {
+  font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif !important;
+  letter-spacing: 0.08em;
+  word-spacing: 0.12em;
+}
+
+/* Contrast Theme Override */
+[data-theme="contrast"] {
+  --bg-primary: #000000;
+  --bg-card: #000000;
+  --text-main: #ffffff;
+  --text-muted: #ffff00;
+  --border-color: #ffffff;
+}
+
+[data-theme="contrast"] body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="contrast"] .bg-white,
+[data-theme="contrast"] .bg-gray-50,
+[data-theme="contrast"] .bg-gray-100,
+[data-theme="contrast"] .bg-blue-50,
+[data-theme="contrast"] .bg-orange-50 {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
+}
+
+[data-theme="contrast"] .text-gray-900,
+[data-theme="contrast"] .text-gray-800,
+[data-theme="contrast"] .text-gray-700,
+[data-theme="contrast"] .text-blue-900,
+[data-theme="contrast"] .text-orange-950,
+[data-theme="contrast"] .text-gray-600 {
+  color: #ffffff !important;
+}
+
+[data-theme="contrast"] .text-orange-600,
+[data-theme="contrast"] .text-orange-500,
+[data-theme="contrast"] .text-blue-600,
+[data-theme="contrast"] .text-gray-500 {
+  color: #ffff00 !important; /* High contrast yellow */
+}
+
+[data-theme="contrast"] button,
+[data-theme="contrast"] a.btn {
+  background-color: #000000 !important;
+  color: #ffff00 !important;
+  border: 2px solid #ffff00 !important;
+}
+
+[data-theme="contrast"] input,
+[data-theme="contrast"] textarea,
+[data-theme="contrast"] select {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important;
+}
+
+/* Reduced Motion */
+[data-reduced-motion="true"] * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+.scroll-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scroll-hidden::-webkit-scrollbar {
+  display: none;
+}
+

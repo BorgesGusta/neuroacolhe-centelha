@@ -71,28 +71,16 @@ Infra:
 - variáveis de ambiente por `.env.example`
 - GitHub Actions para build/test/lint
 
-## Arquitetura alvo sugerida
-Usar monorepo:
+## Arquitetura simplificada do projeto
+Usar estrutura direta dividindo backend e frontend na raiz:
 
 ```txt
 neuroacolhe-platform/
-  apps/
-    api/
-    web/
-  packages/
-    database/
-    shared/
-  docs/
+  backend/     # API Node.js/Express/Prisma/PostgreSQL
+  frontend/    # React/Vite/TypeScript/TailwindCSS
+  docs/        # Documentação e backlog do MVP
   README.md
   CLAUDE_CODE_NEUROACOLHE.md
-```
-
-Se a migração imediata para monorepo for grande demais, manter temporariamente:
-
-```txt
-api/
-web/
-docs/
 ```
 
 ## Módulos do MVP
@@ -303,15 +291,13 @@ npm run test
 npm run lint
 ```
 
-Se for monorepo com workspaces:
+Comandos individuais em cada pasta:
 
 ```bash
-npm install
-npm run dev --workspace apps/api
-npm run dev --workspace apps/web
-npm run build
-npm run test
-npm run lint
+# Backend
+cd backend && npm run dev
+# Frontend
+cd frontend && npm run dev
 ```
 
 ## Prompt de execução para o agente

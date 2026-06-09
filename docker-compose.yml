@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  # ─────────────────────────────────────────────
+  # Banco de Dados PostgreSQL
+  # ─────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: neuroacolhe_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: neuroacolhe_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # Backend (Node.js + Express + Prisma)
+  # ─────────────────────────────────────────────
+  backend:
+    container_name: neuroacolhe_backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/neuroacolhe_db?schema=public
+      JWT_SECRET: neuroacolhe_jwt_secret_dev_2026
+      ALLOWED_ORIGINS: "http://localhost,http://localhost:80,http://localhost:5173"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    command: >
+      sh -c "npx prisma migrate deploy && npm run dev"
+
+  # ─────────────────────────────────────────────
+  # Frontend (React + Vite → Nginx)
+  # ─────────────────────────────────────────────
+  frontend:
+    container_name: neuroacolhe_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost/api
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

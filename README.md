@@ -18,17 +18,16 @@ O **NeuroAcolhe** foi projetado para clínicas de psicologia, clínicas-escola e
 
 ---
 
-## 📦 Estrutura de Pastas (Monorepo)
+## 📦 Estrutura de Pastas
 
-O projeto adota uma arquitetura modular moderna:
+O projeto adota uma arquitetura modular simplificada:
 
 ```txt
 neuroacolhe-platform/
-  apps/
-    api/         # API REST em Node.js, Express, Prisma e PostgreSQL (antigo Backend_Papse)
-    web/         # Frontend SPA em React, TypeScript, Vite e TailwindCSS (antigo Frontend)
-  docs/          # Documentação de arquitetura, visão de produto e auditorias
-  README.md      # Este arquivo com as instruções de setup geral
+  backend/     # API REST em Node.js, Express, Prisma e PostgreSQL (antigo Backend_Papse)
+  frontend/    # Frontend SPA em React, TypeScript, Vite e TailwindCSS (antigo Frontend)
+  docs/        # Documentação de arquitetura, visão de produto e auditorias
+  README.md    # Este arquivo com as instruções de setup geral
 ```
 
 ---
@@ -65,14 +64,14 @@ neuroacolhe-platform/
    ```
 
 2. Instale as dependências na pasta de cada app:
-   - Para o Backend: `cd apps/api && npm install`
-   - Para o Frontend: `cd apps/web && npm install`
+   - Para o Backend: `cd backend && npm install`
+   - Para o Frontend: `cd frontend && npm install`
 
-3. Configure as variáveis de ambiente baseando-se nos arquivos `.env.example` localizados em `apps/api` e `apps/web`.
+3. Configure as variáveis de ambiente baseando-se nos arquivos `.env.example` localizados em `backend` e `frontend`.
 
 4. Suba o banco de dados via Docker:
    ```bash
-   cd apps/api
+   cd backend
    docker compose up -d
    ```
 
@@ -87,8 +86,8 @@ neuroacolhe-platform/
    ```
 
 7. Execute o projeto em modo de desenvolvimento:
-   - Backend: `npm run dev` (em `apps/api`)
-   - Frontend: `npm run dev` (em `apps/web`)
+   - Backend: `npm run dev` (em `backend`)
+   - Frontend: `npm run dev` (em `frontend`)
 
 ---
 
