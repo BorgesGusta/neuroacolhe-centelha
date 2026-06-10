@@ -50,6 +50,10 @@ export interface Patient {
   priorityReviewedAt?: string;
   priorityReviewedBy?: string;
   priorityReviewStatus?: 'PENDING' | 'VALIDATED' | 'REVISED';
+
+  // Aura / Check-in
+  currentAuraState?: 'SERENE' | 'LIGHT' | 'NEUTRAL' | 'LOW_ENERGY' | 'ATTENTION';
+  lastCheckInAt?: string;
 }
 
 export interface CareCase {
@@ -125,9 +129,9 @@ const defaultInstitutions: Institution[] = [
 ];
 
 const defaultUsers: User[] = [
-  { id: 'usr-helena', name: 'Dra. Helena Vasconcelos', email: 'helena@neuroacolhe.org', role: 'ADMIN', active: true, institutionId: 'inst-horizonte' },
-  { id: 'usr-lucas', name: 'Lucas Mendes', email: 'lucas@neuroacolhe.org', role: 'PROFESSIONAL', active: true, institutionId: 'inst-horizonte' },
-  { id: 'usr-roberto', name: 'Dr. Roberto Albuquerque', email: 'roberto@neuroacolhe.org', role: 'SUPERVISOR', active: true, institutionId: 'inst-horizonte' }
+  { id: 'usr-helena', name: 'Dra. Helena Vasconcelos', email: 'helena@nura.org', role: 'ADMIN', active: true, institutionId: 'inst-horizonte' },
+  { id: 'usr-lucas', name: 'Lucas Mendes', email: 'lucas@nura.org', role: 'PROFESSIONAL', active: true, institutionId: 'inst-horizonte' },
+  { id: 'usr-roberto', name: 'Dr. Roberto Albuquerque', email: 'roberto@nura.org', role: 'SUPERVISOR', active: true, institutionId: 'inst-horizonte' }
 ];
 
 const defaultPatients: Patient[] = [
@@ -158,7 +162,9 @@ const defaultPatients: Patient[] = [
     priorityReasons: [],
     priorityReviewStatus: 'VALIDATED',
     priorityReviewedAt: '2026-06-02T10:00:00Z',
-    priorityReviewedBy: 'Dra. Helena Vasconcelos'
+    priorityReviewedBy: 'Dra. Helena Vasconcelos',
+    currentAuraState: 'LOW_ENERGY',
+    lastCheckInAt: 'Há 2 horas'
   },
   {
     id: 'pat-julia',
@@ -186,7 +192,9 @@ const defaultPatients: Patient[] = [
       'Impacto significativo ou severo nas atividades de rotina diária',
       'Sobrecarga emocional percebida como elevada'
     ],
-    priorityReviewStatus: 'PENDING'
+    priorityReviewStatus: 'PENDING',
+    currentAuraState: 'ATTENTION',
+    lastCheckInAt: 'Há 4 horas'
   },
   {
     id: 'pat-lucas',
@@ -216,7 +224,9 @@ const defaultPatients: Patient[] = [
     priorityReasons: [],
     priorityReviewStatus: 'VALIDATED',
     priorityReviewedAt: '2026-05-11T14:00:00Z',
-    priorityReviewedBy: 'Lucas Mendes'
+    priorityReviewedBy: 'Lucas Mendes',
+    currentAuraState: 'NEUTRAL',
+    lastCheckInAt: 'Ontem'
   },
   {
     id: 'pat-mariana',
@@ -244,7 +254,9 @@ const defaultPatients: Patient[] = [
     priorityReasons: [],
     priorityReviewStatus: 'VALIDATED',
     priorityReviewedAt: '2026-04-12T09:00:00Z',
-    priorityReviewedBy: 'Lucas Mendes'
+    priorityReviewedBy: 'Lucas Mendes',
+    currentAuraState: 'LIGHT',
+    lastCheckInAt: 'Há 3 dias'
   },
   {
     id: 'pat-roberto',
@@ -271,7 +283,9 @@ const defaultPatients: Patient[] = [
     priorityReasons: [],
     priorityReviewStatus: 'VALIDATED',
     priorityReviewedAt: '2026-05-03T11:00:00Z',
-    priorityReviewedBy: 'Dra. Helena Vasconcelos'
+    priorityReviewedBy: 'Dra. Helena Vasconcelos',
+    currentAuraState: 'SERENE',
+    lastCheckInAt: 'Há 5 dias'
   },
   {
     id: 'pat-gabriela',
@@ -301,7 +315,9 @@ const defaultPatients: Patient[] = [
       'Sobrecarga emocional percebida como elevada',
       'Ausência ou fragilidade na rede de apoio sociofamiliar'
     ],
-    priorityReviewStatus: 'PENDING'
+    priorityReviewStatus: 'PENDING',
+    currentAuraState: 'ATTENTION',
+    lastCheckInAt: 'Hoje pela manhã'
   },
   {
     id: 'pat-enzo',
@@ -337,7 +353,9 @@ const defaultPatients: Patient[] = [
       'Ausência ou fragilidade na rede de apoio sociofamiliar',
       'Urgência elevada percebida pelo próprio paciente'
     ],
-    priorityReviewStatus: 'PENDING'
+    priorityReviewStatus: 'PENDING',
+    currentAuraState: 'ATTENTION',
+    lastCheckInAt: 'Há 30 minutos'
   }
 ];
 
@@ -539,14 +557,14 @@ function setLocalStorage<T>(key: string, value: T): void {
 
 // --- ACTIVE DATABASE SIMULATION ---
 
-export const getInstitutions = () => getLocalStorage<Institution[]>('@NeuroAcolhe:mock:institutions', defaultInstitutions);
-export const getUsers = () => getLocalStorage<User[]>('@NeuroAcolhe:mock:users', defaultUsers);
-export const getPatients = () => getLocalStorage<Patient[]>('@NeuroAcolhe:mock:patients', defaultPatients);
-export const getCases = () => getLocalStorage<CareCase[]>('@NeuroAcolhe:mock:cases', defaultCases);
-export const getSessionNotes = () => getLocalStorage<SessionNote[]>('@NeuroAcolhe:mock:sessionNotes', defaultSessionNotes);
-export const getSupervisionNotes = () => getLocalStorage<SupervisionNote[]>('@NeuroAcolhe:mock:supervisionNotes', defaultSupervisionNotes);
-export const getAlerts = () => getLocalStorage<Alert[]>('@NeuroAcolhe:mock:alerts', defaultAlerts);
-export const getAuditLogs = () => getLocalStorage<AuditLog[]>('@NeuroAcolhe:mock:auditLogs', defaultAuditLogs);
+export const getInstitutions = () => getLocalStorage<Institution[]>('@Nura:mock:institutions', defaultInstitutions);
+export const getUsers = () => getLocalStorage<User[]>('@Nura:mock:users', defaultUsers);
+export const getPatients = () => getLocalStorage<Patient[]>('@Nura:mock:patients', defaultPatients);
+export const getCases = () => getLocalStorage<CareCase[]>('@Nura:mock:cases', defaultCases);
+export const getSessionNotes = () => getLocalStorage<SessionNote[]>('@Nura:mock:sessionNotes', defaultSessionNotes);
+export const getSupervisionNotes = () => getLocalStorage<SupervisionNote[]>('@Nura:mock:supervisionNotes', defaultSupervisionNotes);
+export const getAlerts = () => getLocalStorage<Alert[]>('@Nura:mock:alerts', defaultAlerts);
+export const getAuditLogs = () => getLocalStorage<AuditLog[]>('@Nura:mock:auditLogs', defaultAuditLogs);
 
 // --- SIMULATED MUTATIONS / WRITE API ---
 
@@ -600,7 +618,7 @@ export const savePatient = (patient: Omit<Patient, 'id' | 'createdAt'>) => {
     createdAt: new Date().toISOString()
   };
   patients.push(newPatient);
-  setLocalStorage('@NeuroAcolhe:mock:patients', patients);
+  setLocalStorage('@Nura:mock:patients', patients);
 
   // Auto create alert if HIGH or FAST_REVIEW
   if (newPatient.priorityLevel === 'FAST_REVIEW' || newPatient.priorityLevel === 'HIGH') {
@@ -615,7 +633,7 @@ export const savePatient = (patient: Omit<Patient, 'id' | 'createdAt'>) => {
       createdAt: new Date().toISOString(),
       institutionId: newPatient.institutionId
     });
-    setLocalStorage('@NeuroAcolhe:mock:alerts', alerts);
+    setLocalStorage('@Nura:mock:alerts', alerts);
   }
 
   // Auto create queue item
@@ -645,7 +663,7 @@ export const reviewPatientPriority = (
       if (revisedReasons !== undefined) patient.priorityReasons = revisedReasons;
     }
     
-    setLocalStorage('@NeuroAcolhe:mock:patients', patients);
+    setLocalStorage('@Nura:mock:patients', patients);
     
     // Resolve alerts associated with this patient's priority
     const alerts = getAlerts();
@@ -656,7 +674,7 @@ export const reviewPatientPriority = (
     activeAlerts.forEach(a => {
       a.status = 'RESOLVED';
     });
-    setLocalStorage('@NeuroAcolhe:mock:alerts', alerts);
+    setLocalStorage('@Nura:mock:alerts', alerts);
     
     addAuditLog(currentUser?.id, 'REVIEW_PATIENT_PRIORITY', 'Patient', patientId, patient.institutionId);
   }
@@ -668,7 +686,7 @@ export const updatePatientStatus = (patientId: string, status: Patient['status']
   if (patient) {
     patient.status = status;
     if (notes) patient.notes = notes;
-    setLocalStorage('@NeuroAcolhe:mock:patients', patients);
+    setLocalStorage('@Nura:mock:patients', patients);
     addAuditLog(getCurrentUser()?.id, 'UPDATE_PATIENT_STATUS', 'Patient', patientId, patient.institutionId);
   }
 };
@@ -701,7 +719,7 @@ export const createCase = (patientId: string, professionalId: string, supervisor
   };
 
   cases.push(newCase);
-  setLocalStorage('@NeuroAcolhe:mock:cases', cases);
+  setLocalStorage('@Nura:mock:cases', cases);
   addAuditLog(getCurrentUser()?.id, 'CREATE_CARE_CASE', 'CareCase', newCase.id, newCase.institutionId);
   return newCase;
 };
@@ -730,7 +748,7 @@ export const addSessionNote = (caseId: string, content: string, isAbsent: boolea
   };
 
   notes.push(newNote);
-  setLocalStorage('@NeuroAcolhe:mock:sessionNotes', notes);
+  setLocalStorage('@Nura:mock:sessionNotes', notes);
 
   // If professional is student/bolsista, add alert for supervision
   const alerts = getAlerts();
@@ -745,7 +763,7 @@ export const addSessionNote = (caseId: string, content: string, isAbsent: boolea
     createdAt: new Date().toISOString(),
     institutionId: careCase.institutionId
   });
-  setLocalStorage('@NeuroAcolhe:mock:alerts', alerts);
+  setLocalStorage('@Nura:mock:alerts', alerts);
 
   addAuditLog(getCurrentUser()?.id, 'WRITE_CLINICAL_NOTE', 'SessionNote', newNote.id, newNote.institutionId);
   return newNote;
@@ -770,14 +788,14 @@ export const addSupervisionNote = (caseId: string, sessionNoteId: string, conten
   };
 
   notes.push(newNote);
-  setLocalStorage('@NeuroAcolhe:mock:supervisionNotes', notes);
+  setLocalStorage('@Nura:mock:supervisionNotes', notes);
 
   // Resolve pending supervision alerts for this patient
   const alerts = getAlerts();
   const pendingAlert = alerts.find(a => a.caseId === caseId && a.type === 'PENDING_SUPERVISION' && a.status === 'ACTIVE');
   if (pendingAlert) {
     pendingAlert.status = 'RESOLVED';
-    setLocalStorage('@NeuroAcolhe:mock:alerts', alerts);
+    setLocalStorage('@Nura:mock:alerts', alerts);
   }
 
   addAuditLog(user.id, 'WRITE_CLINICAL_NOTE', 'SupervisionNote', newNote.id, newNote.institutionId);
@@ -789,7 +807,7 @@ export const resolveAlert = (alertId: string) => {
   const alert = alerts.find(a => a.id === alertId);
   if (alert) {
     alert.status = 'RESOLVED';
-    setLocalStorage('@NeuroAcolhe:mock:alerts', alerts);
+    setLocalStorage('@Nura:mock:alerts', alerts);
     addAuditLog(getCurrentUser()?.id, 'RESOLVE_ALERT', 'Alert', alertId, alert.institutionId);
   }
 };
@@ -813,13 +831,13 @@ export const addAuditLog = (userId: string | null | undefined, action: string, r
   };
 
   logs.unshift(newLog);
-  setLocalStorage('@NeuroAcolhe:mock:auditLogs', logs);
+  setLocalStorage('@Nura:mock:auditLogs', logs);
 };
 
 // --- AUTH LOGGED USER HELPER ---
 
 function getCurrentUser(): User | null {
-  const userStr = localStorage.getItem('@NeuroAcolhe:user');
+  const userStr = localStorage.getItem('@Nura:user');
   if (!userStr) return null;
   try {
     return JSON.parse(userStr);

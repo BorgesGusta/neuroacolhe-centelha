@@ -12,7 +12,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = localStorage.getItem("@NeuroAcolhe:token");
+  const token = localStorage.getItem("@Nura:token");
   if (!config.headers) config.headers = {} as AxiosRequestHeaders;
   if (token) {
     (config.headers as AxiosRequestHeaders)["Authorization"] =

@@ -20,7 +20,7 @@ class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("NeuroAcolhe — React crash:", error, info);
+    console.error("Nura — React crash:", error, info);
   }
 
   render() {
@@ -34,7 +34,7 @@ class ErrorBoundary extends Component<
         }}>
           <span style={{ fontSize: "3rem" }}>⚠️</span>
           <h1 style={{ fontSize: "1.5rem", fontWeight: 800, margin: "1rem 0 0.5rem" }}>
-            Erro ao carregar o NeuroAcolhe
+            Erro ao carregar o Nura
           </h1>
           <p style={{ color: "#94A3B8", maxWidth: "480px", lineHeight: 1.6 }}>
             Ocorreu um problema interno. Tente recarregar a página.

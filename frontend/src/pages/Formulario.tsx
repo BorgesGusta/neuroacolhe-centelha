@@ -1,9 +1,16 @@
 // frontend/src/pages/Formulario.tsx
-import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { savePatient } from "../data/mockData";
-import HeaderMenu from "../components/shared/HeaderMenu";
-import { Shield } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronRight, ChevronLeft } from "lucide-react";
+import OptionChip from "../components/triagem/OptionChip";
+import StepperHeader from "../components/triagem/StepperHeader";
+import AvailabilitySelector, { AvailabilityData } from "../components/triagem/AvailabilitySelector";
+import AccessibilityBlock from "../components/triagem/AccessibilityBlock";
+import SummaryCard from "../components/triagem/SummaryCard";
+import SuccessScreen from "../components/triagem/SuccessScreen";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface TriagemData {
   nome: string;
@@ -12,23 +19,28 @@ interface TriagemData {
   birthDate: string;
   responsibleName?: string;
   responsiblePhone?: string;
+  institutionOrClinic: string;
+  relationship: string;
+
   reasonForSeeking: string;
-  availability: string;
-  communicationPreference: string;
-  hasNeurodivergence: boolean;
-  neurodivergenceDetails?: string;
-  sensorySensitivities?: string;
-  needsAssistance: boolean;
-  notes?: string;
-  termo_aceite: boolean;
-  
-  // Perguntas do Motor de Priorização
+  reasonExplanation?: string;
+  availabilityPeriod: string;
+  availabilityDays: string;
+  availabilityModality: string;
+
   rotina: number;
   concentracao: number;
   sono: number;
   sobrecarga: number;
   apoio: number;
   urgencia: number;
+
+  hasCondition: boolean | null;
+  communicationPreference: string;
+  adaptations: string[];
+  additionalNeeds?: string;
+
+  termo_aceite: boolean;
 }
 
 const initialDraft: TriagemData = {
@@ -36,35 +48,129 @@ const initialDraft: TriagemData = {
   email: "",
   telefone: "",
   birthDate: "",
+  institutionOrClinic: "",
+  relationship: "",
   responsibleName: "",
   responsiblePhone: "",
+
   reasonForSeeking: "",
-  availability: "",
-  communicationPreference: "Texto / WhatsApp",
-  hasNeurodivergence: false,
-  neurodivergenceDetails: "",
-  sensorySensitivities: "",
-  needsAssistance: false,
-  notes: "",
+  reasonExplanation: "",
+  availabilityPeriod: "",
+  availabilityDays: "",
+  availabilityModality: "",
+
+  rotina: -1,
+  concentracao: -1,
+  sono: -1,
+  sobrecarga: -1,
+  apoio: -1,
+  urgencia: -1,
+
+  hasCondition: null,
+  communicationPreference: "",
+  adaptations: [],
+  additionalNeeds: "",
+
   termo_aceite: false,
-  rotina: 0,
-  concentracao: 0,
-  sono: 0,
-  sobrecarga: 0,
-  apoio: 0,
-  urgencia: 0
 };
+
+// ─── Step 3 questions ─────────────────────────────────────────────────────────
+
+const step3Questions = [
+  {
+    field: "rotina" as keyof TriagemData,
+    label: "Como está sua rotina nas últimas semanas?",
+    options: [
+      "Consigo realizar minhas atividades normalmente",
+      "Tenho feito o necessário, mas com esforço extra",
+      "Tenho deixado tarefas importantes de lado",
+      "Está muito difícil realizar até atividades básicas",
+    ],
+  },
+  {
+    field: "concentracao" as keyof TriagemData,
+    label: "Como está sua concentração?",
+    options: [
+      "Sinto que meu foco está normal",
+      "Sinto a mente dispersa, preciso me esforçar mais para focar",
+      "Tenho muita dificuldade de concentração, isso tem me prejudicado",
+    ],
+  },
+  {
+    field: "sono" as keyof TriagemData,
+    label: "Como está seu sono?",
+    options: [
+      "Tenho dormido bem e acordo com energia",
+      "Meu sono tem sido agitado ou demoro para dormir",
+      "Tenho dormido muito mal ou sinto exaustão constante",
+    ],
+  },
+  {
+    field: "sobrecarga" as keyof TriagemData,
+    label: "Como está sua sensação de sobrecarga?",
+    options: [
+      "Sinto-me tranquilo(a) ou lidando bem com os desafios",
+      "Sinto algum estresse, mas consigo gerenciar",
+      "Sinto-me muito sobrecarregado(a) frequentemente",
+      "Sinto que cheguei ao meu limite",
+    ],
+  },
+  {
+    field: "apoio" as keyof TriagemData,
+    label: "Você sente que tem com quem contar?",
+    options: [
+      "Tenho pessoas próximas com quem posso contar sempre",
+      "Tenho algum apoio, mas às vezes me sinto sozinho(a)",
+      "Sinto-me isolado(a) e sem ter com quem conversar",
+    ],
+  },
+  {
+    field: "urgencia" as keyof TriagemData,
+    label: "Como você percebe a urgência do acolhimento?",
+    options: [
+      "Posso aguardar os prazos normais sem problemas",
+      "Gostaria de iniciar em breve, mas consigo esperar",
+      "Preciso muito de ajuda o quanto antes",
+      "Estou em muito sofrimento e preciso de atenção urgente",
+    ],
+  },
+];
+
+const reasonOptions = [
+  "Organização da rotina",
+  "Sobrecarga emocional",
+  "Dificuldade de concentração",
+  "Sono ou cansaço",
+  "Relacionamentos",
+  "Adaptação aos estudos/trabalho",
+  "Acompanhamento contínuo",
+  "Outro",
+];
+
+const stepSubtitles: Record<number, string> = {
+  1: "Vamos começar com algumas informações básicas.",
+  2: "Nos ajude a entender o que trouxe você até aqui.",
+  3: "Responda com base em como você tem se sentido nas últimas semanas.",
+  4: "Queremos que seu acolhimento seja o mais confortável possível.",
+  5: "Revise suas informações antes de enviar.",
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const Formulario = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [subStep, setSubStep] = useState(0);
   const [formData, setFormData] = useState<TriagemData>(initialDraft);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const errorRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
 
-  // Load draft from localStorage on mount
+  // ── Persist draft ──────────────────────────────────────────────────────────
   useEffect(() => {
-    const draft = localStorage.getItem("@NeuroAcolhe:triagemDraft");
+    const draft = localStorage.getItem("@Nura:triagemDraftV3");
     if (draft) {
       try {
         setFormData(JSON.parse(draft));
@@ -74,61 +180,165 @@ const Formulario = () => {
     }
   }, []);
 
-  // Save draft to localStorage on change
-  const updateField = (field: keyof TriagemData, value: any) => {
+  const updateField = (field: keyof TriagemData, value: unknown) => {
     const updated = { ...formData, [field]: value };
     setFormData(updated);
-    localStorage.setItem("@NeuroAcolhe:triagemDraft", JSON.stringify(updated));
+    localStorage.setItem("@Nura:triagemDraftV3", JSON.stringify(updated));
+    setErrorMsg("");
   };
 
+  const toggleAdaptation = (adaptation: string) => {
+    let current = [...formData.adaptations];
+    if (current.includes(adaptation)) {
+      current = current.filter((a) => a !== adaptation);
+    } else {
+      current.push(adaptation);
+    }
+    updateField("adaptations", current);
+  };
+
+  // ── Availability helper ────────────────────────────────────────────────────
+  const availabilityData: AvailabilityData = {
+    period: formData.availabilityPeriod,
+    days: formData.availabilityDays,
+    modality: formData.availabilityModality,
+  };
+
+  const handleAvailabilityChange = (data: AvailabilityData) => {
+    const updated = {
+      ...formData,
+      availabilityPeriod: data.period,
+      availabilityDays: data.days,
+      availabilityModality: data.modality,
+    };
+    setFormData(updated);
+    localStorage.setItem("@Nura:triagemDraftV3", JSON.stringify(updated));
+    setErrorMsg("");
+  };
+
+  // ── Utilities ──────────────────────────────────────────────────────────────
   const isMinor = () => {
     if (!formData.birthDate) return false;
     const birth = new Date(formData.birthDate);
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
     const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
     return age < 18;
   };
 
+  const validateEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const scrollTop = () => {
+    topRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const showError = (msg: string) => {
+    setErrorMsg(msg);
+    setTimeout(() => errorRef.current?.focus(), 100);
+  };
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
   const nextStep = () => {
-    // Validate current step fields
+    setErrorMsg("");
+
     if (step === 1) {
-      if (!formData.nome || !formData.email || !formData.telefone || !formData.birthDate) {
-        alert("Por favor, preencha todos os campos obrigatórios.");
+      if (
+        !formData.nome ||
+        !formData.email ||
+        !formData.telefone ||
+        !formData.birthDate ||
+        !formData.institutionOrClinic ||
+        !formData.relationship
+      ) {
+        showError("Por favor, preencha todos os campos obrigatórios para avançar.");
+        return;
+      }
+      if (!validateEmail(formData.email)) {
+        showError("E-mail inválido. Por favor, verifique.");
+        return;
+      }
+      if (formData.telefone.length < 10) {
+        showError("Telefone incompleto.");
         return;
       }
       if (isMinor() && (!formData.responsibleName || !formData.responsiblePhone)) {
-        alert("Para menores de 18 anos, os dados do responsável são obrigatórios.");
+        showError("Para menores de 18 anos, os dados do responsável são obrigatórios.");
         return;
       }
     } else if (step === 2) {
-      if (!formData.reasonForSeeking || !formData.availability) {
-        alert("Por favor, informe o motivo e sua disponibilidade.");
+      if (!formData.reasonForSeeking) {
+        showError("Selecione o motivo que mais se aproxima da sua busca.");
+        return;
+      }
+      if (!formData.availabilityPeriod || !formData.availabilityDays || !formData.availabilityModality) {
+        showError("Selecione uma opção em cada grupo de disponibilidade: período, dias e modalidade.");
+        return;
+      }
+    } else if (step === 3) {
+      const unanswered = step3Questions.some((q) => (formData[q.field] as number) < 0);
+      if (unanswered) {
+        showError("Por favor, responda todas as perguntas para avançar.");
+        return;
+      }
+    } else if (step === 4) {
+      if (!formData.communicationPreference) {
+        showError("Selecione sua preferência de contato.");
+        return;
+      }
+      if (formData.hasCondition === null) {
+        showError("Responda a pergunta sobre acessibilidade para continuar.");
         return;
       }
     }
+
+    setSubStep(0);
     setStep(step + 1);
+    scrollTop();
   };
 
   const prevStep = () => {
+    setErrorMsg("");
+    setSubStep(0);
     setStep(step - 1);
+    scrollTop();
   };
 
+  // ── Sub-step navigation (step 3) ───────────────────────────────────────────
+  const nextSubStep = () => {
+    const currentField = step3Questions[subStep].field;
+    if ((formData[currentField] as number) < 0) {
+      showError("Selecione uma opção antes de continuar.");
+      return;
+    }
+    setErrorMsg("");
+    setSubStep((s) => s + 1);
+    scrollTop();
+  };
+
+  const prevSubStep = () => {
+    setErrorMsg("");
+    setSubStep((s) => s - 1);
+    scrollTop();
+  };
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (step !== 5) return;
     if (!formData.termo_aceite) {
-      alert("Você deve aceitar o Termo de Consentimento LGPD para enviar.");
+      showError("Você deve concordar com o uso dos dados para fins de triagem para prosseguir.");
       return;
     }
 
     setIsSubmitting(true);
 
+    const availabilityStr = [formData.availabilityPeriod, formData.availabilityDays, formData.availabilityModality]
+      .filter(Boolean)
+      .join(" · ");
+
     setTimeout(() => {
-      // Save to mock database
       savePatient({
         name: formData.nome,
         email: formData.email,
@@ -137,428 +347,583 @@ const Formulario = () => {
         responsibleName: formData.responsibleName || undefined,
         responsiblePhone: formData.responsiblePhone || undefined,
         status: "RECEIVED",
-        reasonForSeeking: formData.reasonForSeeking,
-        availability: formData.availability,
+        reasonForSeeking:
+          formData.reasonForSeeking + (formData.reasonExplanation ? ` - ${formData.reasonExplanation}` : ""),
+        availability: availabilityStr,
         communicationPreference: formData.communicationPreference,
-        hasNeurodivergence: formData.hasNeurodivergence,
-        neurodivergenceDetails: formData.neurodivergenceDetails || undefined,
-        sensorySensitivities: formData.sensorySensitivities || undefined,
-        needsAssistance: formData.needsAssistance,
-        notes: formData.notes || undefined,
-        institutionId: "inst-horizonte", // Default for demo
-        
-        // Dados de priorização
-        rotina: Number(formData.rotina),
-        concentracao: Number(formData.concentracao),
-        sono: Number(formData.sono),
-        sobrecarga: Number(formData.sobrecarga),
-        apoio: Number(formData.apoio),
-        urgencia: Number(formData.urgencia)
+        hasNeurodivergence: formData.hasCondition ?? false,
+        sensorySensitivities: formData.adaptations.join(", ") || undefined,
+        needsAssistance: formData.adaptations.includes("Preciso de apoio no preenchimento"),
+        notes: formData.additionalNeeds || undefined,
+        institutionId: "inst-horizonte",
+        rotina: formData.rotina,
+        concentracao: formData.concentracao,
+        sono: formData.sono,
+        sobrecarga: formData.sobrecarga,
+        apoio: formData.apoio,
+        urgencia: formData.urgencia,
       });
 
-      // Clear draft
-      localStorage.removeItem("@NeuroAcolhe:triagemDraft");
+      localStorage.removeItem("@Nura:triagemDraftV3");
       setIsSubmitting(false);
       setShowSuccess(true);
+      scrollTop();
     }, 1200);
   };
 
+  // ── Step names ─────────────────────────────────────────────────────────────
+  const stepNames = [
+    "Dados básicos",
+    "Motivo e disponibilidade",
+    "Rotina e bem-estar",
+    "Acessibilidade e comunicação",
+    "Consentimento e envio",
+  ];
+
+  // ── Inline scale radio ─────────────────────────────────────────────────────
+  const ScaleOption = ({
+    field,
+    idx,
+    label,
+  }: {
+    field: keyof TriagemData;
+    idx: number;
+    label: string;
+  }) => {
+    const isSelected = (formData[field] as number) === idx;
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          updateField(field, idx);
+          // Auto-advance to next sub-step after selection (with delay), respecting reduced motion
+          if (subStep < step3Questions.length - 1) {
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            const delay = reducedMotion ? 0 : 400;
+            setTimeout(() => {
+              setErrorMsg("");
+              setSubStep((s) => s + 1);
+              scrollTop();
+            }, delay);
+          }
+        }}
+        className={`
+          w-full flex items-start gap-3 text-sm text-left px-4 py-3.5 rounded-xl border-2 transition-all
+          min-h-[52px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-1
+          ${
+            isSelected
+              ? "bg-teal-50 border-teal-400 text-teal-800 font-semibold shadow-sm"
+              : "bg-white border-slate-200 text-slate-600 hover:bg-teal-50/40 hover:border-teal-200"
+          }
+        `}
+        aria-pressed={isSelected}
+      >
+        <span
+          className={`
+            mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
+            ${isSelected ? "border-teal-500 bg-teal-500" : "border-slate-300"}
+          `}
+          aria-hidden="true"
+        >
+          {isSelected && <span className="w-2 h-2 rounded-full bg-white" />}
+        </span>
+        <span className="flex-1 leading-snug">{label}</span>
+      </button>
+    );
+  };
+
+  // ── Input class helper ─────────────────────────────────────────────────────
+  const inputCls =
+    "w-full rounded-xl border border-slate-200 py-3 px-4 text-slate-900 text-sm bg-white " +
+    "focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:border-teal-400 " +
+    "transition-all placeholder:text-slate-400";
+
+  const labelCls = "block text-sm font-semibold text-slate-700 mb-1.5";
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-brand-bg flex flex-col text-brand-text-main font-sans">
-      <nav className="flex justify-between items-center p-6 md:px-12 relative z-50 border-b border-brand-border bg-white">
-        <div className="flex items-center gap-6">
-          <Link to="/" className="text-xl font-extrabold text-brand-primary-dark no-underline flex items-center gap-1.5">
-            <Shield className="text-brand-primary" size={24} /> NeuroAcolhe
-          </Link>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-brand-border p-1">
-          <HeaderMenu variant="guest" />
-        </div>
+    <div
+      className="min-h-screen flex flex-col font-sans"
+      style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f0fdfa 50%, #f5f3ff 100%)" }}
+    >
+      {/* Skip link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50
+          bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+      >
+        Pular para conteúdo principal
+      </a>
+
+      {/* ── Minimal nav ─────────────────────────────────────────────────────── */}
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-slate-100 px-6 py-4 flex justify-between items-center">
+        <button
+          onClick={() => navigate("/")}
+          className="text-lg font-extrabold text-slate-800 hover:text-teal-600 transition-colors flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 rounded-lg px-1"
+          aria-label="Voltar para início - Nura"
+        >
+          Nura
+        </button>
+        {!showSuccess && (
+          <span className="text-xs text-slate-400 font-semibold">
+            Passo {step} de 5
+          </span>
+        )}
       </nav>
 
-      <div className="flex-1 flex justify-center items-center p-6 relative z-10 max-w-4xl mx-auto w-full py-12">
-        {showSuccess ? (
-          <div className="bg-white text-brand-text-main rounded-3xl border border-brand-border p-8 max-w-md w-full shadow-lg text-center space-y-6">
-            <div className="h-16 w-16 bg-brand-secondary-soft rounded-full flex items-center justify-center mx-auto text-brand-secondary text-3xl">
-              ✓
-            </div>
-            <h2 className="text-2xl font-bold text-brand-text-main">Triagem Recebida!</h2>
-            <p className="text-brand-text-muted leading-relaxed text-sm font-medium">
-              Sua triagem foi recebida com sucesso. A equipe do **NeuroAcolhe** fará a análise inicial e entrará em contato em breve usando a sua preferência de comunicação informada.
-            </p>
-            <button
-              onClick={() => navigate("/")}
-              className="w-full bg-brand-primary hover:bg-brand-primary-dark text-white font-bold py-3.5 rounded-xl transition-all shadow-sm"
-            >
-              Voltar ao Início
-            </button>
-          </div>
-        ) : (
-          <div className="bg-white text-brand-text-main rounded-3xl border border-brand-border shadow-lg w-full max-w-xl p-8 space-y-6">
-            {/* Form Header */}
-            <div>
-              <span className="text-[10px] text-brand-primary font-bold uppercase tracking-wider">Passo {step} de 5</span>
-              <h2 className="text-2xl font-black text-brand-text-main mt-1">Ficha de Triagem Inclusiva</h2>
-              <div className="w-full bg-brand-surface-soft border border-brand-border h-2 rounded-full mt-4 overflow-hidden">
-                <div 
-                  className="bg-brand-primary h-full transition-all duration-300" 
-                  style={{ width: `${(step / 5) * 100}%` }}
-                />
-              </div>
-            </div>
+      {/* ── Main content ─────────────────────────────────────────────────────── */}
+      <main
+        id="main-content"
+        ref={topRef}
+        className="flex-1 flex flex-col items-center px-4 py-10 pb-32 sm:pb-12"
+      >
+        <div className="w-full max-w-xl">
+          {showSuccess ? (
+            <SuccessScreen
+              communicationPreference={formData.communicationPreference}
+              patientName={formData.nome}
+            />
+          ) : (
+            <div className="space-y-6">
+              {/* ── Stepper ─────────────────────────────────────────────── */}
+              <StepperHeader
+                step={step}
+                total={5}
+                stepName={stepNames[step - 1]}
+                stepSubtitle={stepSubtitles[step]}
+                estimatedTime={step === 1 ? "Leva cerca de 3 minutos" : undefined}
+                subStep={step === 3 ? subStep : undefined}
+                subStepTotal={step === 3 ? step3Questions.length : undefined}
+              />
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* STEP 1: Basic Info */}
-              {step === 1 && (
-                <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Dados Pessoais Básicos</h3>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Nome Completo *</label>
-                    <input
-                      type="text"
-                      value={formData.nome}
-                      onChange={(e) => updateField("nome", e.target.value)}
-                      placeholder="Nome completo do paciente"
-                      className="w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
+              {/* ── Error message ────────────────────────────────────────── */}
+              {errorMsg && (
+                <div
+                  ref={errorRef}
+                  tabIndex={-1}
+                  role="alert"
+                  aria-live="polite"
+                  className="bg-rose-50 text-rose-700 p-4 rounded-xl border border-rose-100 flex gap-3 items-start animate-in fade-in duration-200"
+                >
+                  <AlertCircle className="shrink-0 w-5 h-5 mt-0.5" aria-hidden="true" />
+                  <span className="text-sm font-medium">{errorMsg}</span>
+                </div>
+              )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">E-mail *</label>
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => updateField("email", e.target.value)}
-                        placeholder="Email de contato"
-                        className="w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">Telefone (DDD + Número) *</label>
-                      <input
-                        type="tel"
-                        value={formData.telefone}
-                        onChange={(e) => updateField("telefone", e.target.value)}
-                        placeholder="Ex: 11988887777"
-                        className="w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      />
-                    </div>
-                  </div>
+              {/* ── Form ───────────────────────────────────────────────── */}
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm"
+              >
+                <div className="p-6 sm:p-8">
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Data de Nascimento *</label>
-                    <input
-                      type="date"
-                      value={formData.birthDate}
-                      onChange={(e) => updateField("birthDate", e.target.value)}
-                      className="w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-
-                  {isMinor() && (
-                    <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 space-y-3">
-                      <span className="text-xs font-bold text-orange-800 block">Menor de 18 anos detectado. Preencha os dados do responsável legal:</span>
+                  {/* ════════════ STEP 1 — Dados básicos ════════════ */}
+                  {step === 1 && (
+                    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <div>
-                        <label className="block text-xs font-semibold text-orange-700 mb-1">Nome do Responsável *</label>
+                        <label htmlFor="nome" className={labelCls}>
+                          Nome completo <span className="text-rose-400">*</span>
+                        </label>
                         <input
+                          id="nome"
                           type="text"
-                          value={formData.responsibleName}
-                          onChange={(e) => updateField("responsibleName", e.target.value)}
-                          className="w-full rounded-xl border border-orange-200 py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
-                          required
+                          autoComplete="name"
+                          value={formData.nome}
+                          onChange={(e) => updateField("nome", e.target.value)}
+                          placeholder="Seu nome completo"
+                          className={inputCls}
+                          aria-required="true"
                         />
                       </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="email" className={labelCls}>
+                            E-mail <span className="text-rose-400">*</span>
+                          </label>
+                          <input
+                            id="email"
+                            type="email"
+                            autoComplete="email"
+                            value={formData.email}
+                            onChange={(e) => updateField("email", e.target.value)}
+                            placeholder="seu@email.com"
+                            className={inputCls}
+                            aria-required="true"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="telefone" className={labelCls}>
+                            Telefone / WhatsApp <span className="text-rose-400">*</span>
+                          </label>
+                          <input
+                            id="telefone"
+                            type="tel"
+                            autoComplete="tel"
+                            value={formData.telefone}
+                            onChange={(e) => updateField("telefone", e.target.value)}
+                            placeholder="(DD) 90000-0000"
+                            className={inputCls}
+                            aria-required="true"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="birthDate" className={labelCls}>
+                            Data de nascimento <span className="text-rose-400">*</span>
+                          </label>
+                          <input
+                            id="birthDate"
+                            type="date"
+                            autoComplete="bday"
+                            value={formData.birthDate}
+                            onChange={(e) => updateField("birthDate", e.target.value)}
+                            className={inputCls}
+                            aria-required="true"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="relationship" className={labelCls}>
+                            Vínculo <span className="text-rose-400">*</span>
+                          </label>
+                          <select
+                            id="relationship"
+                            value={formData.relationship}
+                            onChange={(e) => updateField("relationship", e.target.value)}
+                            className={inputCls}
+                            aria-required="true"
+                          >
+                            <option value="">Selecione...</option>
+                            <option value="Paciente particular">Paciente particular</option>
+                            <option value="Aluno/Estudante">Aluno / Estudante</option>
+                            <option value="Colaborador">Colaborador / Funcionário</option>
+                            <option value="Outro">Outro</option>
+                          </select>
+                        </div>
+                      </div>
+
                       <div>
-                        <label className="block text-xs font-semibold text-orange-700 mb-1">Telefone do Responsável *</label>
+                        <label htmlFor="institution" className={labelCls}>
+                          Instituição / Clínica vinculada <span className="text-rose-400">*</span>
+                        </label>
                         <input
-                          type="tel"
-                          value={formData.responsiblePhone}
-                          onChange={(e) => updateField("responsiblePhone", e.target.value)}
-                          className="w-full rounded-xl border border-orange-200 py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
-                          required
+                          id="institution"
+                          type="text"
+                          value={formData.institutionOrClinic}
+                          onChange={(e) => updateField("institutionOrClinic", e.target.value)}
+                          placeholder="Nome da clínica ou instituição"
+                          className={inputCls}
+                          aria-required="true"
+                        />
+                      </div>
+
+                      {isMinor() && (
+                        <div className="bg-amber-50 p-5 rounded-xl border border-amber-100 space-y-3 animate-in fade-in duration-200">
+                          <p className="text-sm font-bold text-amber-800 flex items-center gap-2">
+                            <AlertCircle size={16} aria-hidden="true" />
+                            Dados do Responsável Legal (obrigatório)
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <input
+                              type="text"
+                              value={formData.responsibleName}
+                              onChange={(e) => updateField("responsibleName", e.target.value)}
+                              placeholder="Nome do responsável"
+                              className={inputCls}
+                              aria-label="Nome do responsável legal"
+                              aria-required="true"
+                            />
+                            <input
+                              type="tel"
+                              value={formData.responsiblePhone}
+                              onChange={(e) => updateField("responsiblePhone", e.target.value)}
+                              placeholder="Telefone do responsável"
+                              className={inputCls}
+                              aria-label="Telefone do responsável legal"
+                              aria-required="true"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ════════════ STEP 2 — Motivo e Disponibilidade ════════════ */}
+                  {step === 2 && (
+                    <div className="space-y-7 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      {/* Motivo */}
+                      <div className="space-y-3">
+                        <label className={labelCls}>
+                          Qual opção mais se aproxima do motivo da sua busca?{" "}
+                          <span className="text-rose-400">*</span>
+                        </label>
+                        <div
+                          className="grid grid-cols-1 sm:grid-cols-2 gap-2.5"
+                          role="radiogroup"
+                          aria-label="Motivo da busca"
+                        >
+                          {reasonOptions.map((reason) => (
+                            <OptionChip
+                              key={reason}
+                              value={reason}
+                              selected={formData.reasonForSeeking === reason}
+                              onSelect={(val) => updateField("reasonForSeeking", val)}
+                            >
+                              {reason}
+                            </OptionChip>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Campo aberto */}
+                      <div className="space-y-2">
+                        <label htmlFor="reason-explanation" className={labelCls}>
+                          Quer explicar algo com suas palavras?{" "}
+                          <span className="text-slate-400 font-normal">(Opcional)</span>
+                        </label>
+                        <textarea
+                          id="reason-explanation"
+                          value={formData.reasonExplanation}
+                          onChange={(e) => updateField("reasonExplanation", e.target.value)}
+                          placeholder="Fique à vontade para detalhar um pouco mais..."
+                          rows={3}
+                          className={`${inputCls} resize-none`}
+                        />
+                      </div>
+
+                      {/* Disponibilidade */}
+                      <div className="space-y-3 pt-5 border-t border-slate-100">
+                        <div>
+                          <p className={labelCls}>
+                            Qual a sua disponibilidade para encontros?{" "}
+                            <span className="text-rose-400">*</span>
+                          </p>
+                          <p className="text-xs text-slate-400 mt-0.5">Selecione uma opção em cada grupo.</p>
+                        </div>
+                        <AvailabilitySelector
+                          value={availabilityData}
+                          onChange={handleAvailabilityChange}
                         />
                       </div>
                     </div>
                   )}
-                </div>
-              )}
 
-              {/* STEP 2: Reason and Availability */}
-              {step === 2 && (
-                <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Motivo e Horários</h3>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Por que busca atendimento? (Descreva de forma simples) *</label>
-                    <textarea
-                      value={formData.reasonForSeeking}
-                      onChange={(e) => updateField("reasonForSeeking", e.target.value)}
-                      placeholder="Conte brevemente os motivos pelos quais gostaria de acolhimento psicológico..."
-                      rows={5}
-                      className="w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-950 focus:outline-none focus:ring-2 focus:ring-blue-500 leading-normal"
-                      required
-                    />
-                  </div>
+                  {/* ════════════ STEP 3 — Rotina e bem-estar (mini-quiz) ════════════ */}
+                  {step === 3 && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      {(() => {
+                        const q = step3Questions[subStep];
+                        return (
+                          <div className="space-y-5" key={subStep}>
+                            <div>
+                              <p className="text-base font-bold text-slate-800 leading-snug">{q.label}</p>
+                            </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Disponibilidade de Dias/Períodos *</label>
-                    <input
-                      type="text"
-                      value={formData.availability}
-                      onChange={(e) => updateField("availability", e.target.value)}
-                      placeholder="Ex: Segundas-feiras à tarde, Sábados pela manhã"
-                      className="w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
+                            <div
+                              className="flex flex-col gap-2.5"
+                              role="radiogroup"
+                              aria-label={q.label}
+                            >
+                              {q.options.map((opt, idx) => (
+                                <ScaleOption
+                                  key={idx}
+                                  field={q.field}
+                                  idx={idx}
+                                  label={opt}
+                                />
+                              ))}
+                            </div>
 
-              {/* STEP 3: Questionário de Sobrecarga e Rotina */}
-              {step === 3 && (
-                <div className="space-y-4 text-slate-800">
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Indicadores de Rotina e Sobrecarga</h3>
-                  <p className="text-xs text-gray-500 leading-normal">
-                    Este formulário ajuda a organizar a fila de acolhimento de forma transparente. Responda de acordo com a sua percepção atual nas últimas semanas.
-                  </p>
-
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1">Dificuldade na Rotina Diária *</label>
-                      <select
-                        value={formData.rotina}
-                        onChange={(e) => updateField("rotina", Number(e.target.value))}
-                        className="w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value={0}>Nenhum impacto ou impacto mínimo nas minhas atividades</option>
-                        <option value={1}>Impacto leve (consigo realizar com esforço extra)</option>
-                        <option value={2}>Impacto moderado (tenho deixado de fazer algumas obrigações)</option>
-                        <option value={3}>Impacto severo (dificuldade em realizar tarefas básicas diárias)</option>
-                      </select>
+                            {/* Sub-step navigation */}
+                            <div className="flex items-center justify-between pt-2">
+                              {subStep > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={prevSubStep}
+                                  className="flex items-center gap-1.5 text-sm text-slate-500 font-semibold
+                                    hover:text-slate-700 transition-colors px-3 py-2 rounded-xl hover:bg-slate-100
+                                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300"
+                                >
+                                  <ChevronLeft size={16} /> Anterior
+                                </button>
+                              ) : (
+                                <div />
+                              )}
+                              {subStep < step3Questions.length - 1 && (
+                                <button
+                                  type="button"
+                                  onClick={nextSubStep}
+                                  className="flex items-center gap-1.5 text-sm bg-teal-600 hover:bg-teal-700
+                                    text-white font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm
+                                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-1"
+                                >
+                                  Próxima <ChevronRight size={16} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
+                  )}
 
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1">Dificuldade de Concentração ou Foco *</label>
-                      <select
-                        value={formData.concentracao}
-                        onChange={(e) => updateField("concentracao", Number(e.target.value))}
-                        className="w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value={0}>Foco e atenção normais / Esquecimentos eventuais</option>
-                        <option value={1}>Dificuldade moderada (dispersão constante que exige esforço)</option>
-                        <option value={2}>Dificuldade acentuada (compromete o rendimento em estudos/trabalho)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1">Qualidade do Sono *</label>
-                      <select
-                        value={formData.sono}
-                        onChange={(e) => updateField("sono", Number(e.target.value))}
-                        className="w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value={0}>Sono regular e reparador na maior parte das noites</option>
-                        <option value={1}>Dificuldade eventual de pegar no sono ou sono agitado</option>
-                        <option value={2}>Prejuízo acentuado (insônia frequente ou sono muito interrompido)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1">Sobrecarga Emocional Percebida *</label>
-                      <select
-                        value={formData.sobrecarga}
-                        onChange={(e) => updateField("sobrecarga", Number(e.target.value))}
-                        className="w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value={0}>Sinto-me tranquilo(a) ou com estresse leve sob controle</option>
-                        <option value={1}>Estresse moderado (consigo gerenciar as pressões)</option>
-                        <option value={2}>Sobrecarga elevada (sinto-me esgotado(a) com frequência)</option>
-                        <option value={3}>Esgotamento extremo (dificuldade de lidar com as demandas diárias)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1">Rede de Apoio Familiar e Social *</label>
-                      <select
-                        value={formData.apoio}
-                        onChange={(e) => updateField("apoio", Number(e.target.value))}
-                        className="w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value={0}>Tenho pessoas próximas (amigos/família) que me apoiam ativamente</option>
-                        <option value={1}>Tenho apoio limitado ou poucas pessoas com quem contar</option>
-                        <option value={2}>Sinto-me isolado(a) / Sem rede de apoio sociofamiliar</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1">Nível de Urgência Percebido por Você *</label>
-                      <select
-                        value={formData.urgencia}
-                        onChange={(e) => updateField("urgencia", Number(e.target.value))}
-                        className="w-full rounded-xl border border-gray-300 py-2 px-3 text-gray-900 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value={0}>Baixa (consigo aguardar o fluxo normal da fila de espera)</option>
-                        <option value={1}>Média (gostaria de iniciar o atendimento assim que possível)</option>
-                        <option value={2}>Alta (necessidade importante de atendimento rápido)</option>
-                        <option value={3}>Muito Alta (necessidade de acolhimento profissional muito urgente)</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 4: Accessibility Profile */}
-              {step === 4 && (
-                <div className="space-y-4 text-slate-800">
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Perfil de Acessibilidade</h3>
-                  
-                  <div className="flex items-center justify-between py-2 border-b">
-                    <div>
-                      <span className="block text-sm font-semibold text-gray-800">Autodeclaração Neurodivergente</span>
-                      <span className="text-xs text-gray-400">Você possui diagnóstico de autismo, TDAH ou dislexia?</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => updateField("hasNeurodivergence", !formData.hasNeurodivergence)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        formData.hasNeurodivergence ? "bg-blue-600" : "bg-gray-200"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          formData.hasNeurodivergence ? "translate-x-6" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
-                  </div>
-
-                  {formData.hasNeurodivergence && (
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">Detalhes (Opcional)</label>
-                      <input
-                        type="text"
-                        value={formData.neurodivergenceDetails}
-                        onChange={(e) => updateField("neurodivergenceDetails", e.target.value)}
-                        placeholder="Ex: TDAH, Autismo nível 1 de suporte"
-                        className="w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  {/* ════════════ STEP 4 — Acessibilidade ════════════ */}
+                  {step === 4 && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <AccessibilityBlock
+                        hasCondition={formData.hasCondition}
+                        adaptations={formData.adaptations}
+                        communicationPreference={formData.communicationPreference}
+                        additionalNeeds={formData.additionalNeeds || ""}
+                        onHasConditionChange={(val) => {
+                          updateField("hasCondition", val);
+                          if (!val) updateField("adaptations", []);
+                        }}
+                        onAdaptationToggle={toggleAdaptation}
+                        onCommunicationChange={(val) => updateField("communicationPreference", val)}
+                        onAdditionalNeedsChange={(val) => updateField("additionalNeeds", val)}
                       />
                     </div>
                   )}
 
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Como prefere que entremos em contato com você?</label>
-                    <select
-                      value={formData.communicationPreference}
-                      onChange={(e) => updateField("communicationPreference", e.target.value)}
-                      className="w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                    >
-                      <option value="Texto / WhatsApp">Mensagem escrita (WhatsApp)</option>
-                      <option value="E-mail">E-mail</option>
-                      <option value="Ligação telefônica">Ligação Telefônica tradicional</option>
-                      <option value="Mensagem de Áudio">Áudio via WhatsApp</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1">Sensibilidade Sensorial (Opcional)</label>
-                    <input
-                      type="text"
-                      value={formData.sensorySensitivities}
-                      onChange={(e) => updateField("sensorySensitivities", e.target.value)}
-                      placeholder="Ex: Sensibilidade a luzes fortes, barulhos repentinos"
-                      className="w-full rounded-xl border border-gray-300 py-2.5 px-4 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between py-2 border-b">
-                    <div>
-                      <span className="block text-sm font-semibold text-gray-800">Precisa de Apoio no Preenchimento</span>
-                      <span className="text-xs text-gray-400">Solicitar suporte de leitura ou simplificação cognitiva?</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => updateField("needsAssistance", !formData.needsAssistance)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        formData.needsAssistance ? "bg-blue-600" : "bg-gray-200"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          formData.needsAssistance ? "translate-x-6" : "translate-x-1"
-                        }`}
+                  {/* ════════════ STEP 5 — Consentimento ════════════ */}
+                  {step === 5 && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      {/* Summary */}
+                      <SummaryCard
+                        nome={formData.nome}
+                        telefone={formData.telefone}
+                        email={formData.email}
+                        reasonForSeeking={formData.reasonForSeeking}
+                        availabilityPeriod={formData.availabilityPeriod}
+                        availabilityDays={formData.availabilityDays}
+                        availabilityModality={formData.availabilityModality}
+                        communicationPreference={formData.communicationPreference}
+                        hasCondition={formData.hasCondition}
+                        adaptations={formData.adaptations}
                       />
-                    </button>
+
+                      {/* LGPD */}
+                      <div className="bg-teal-50/60 p-5 rounded-xl border border-teal-100 space-y-4">
+                        <p className="text-sm text-slate-700 leading-relaxed">
+                          Seus dados serão usados apenas para organizar o acolhimento e permitir que a equipe
+                          responsável entre em contato. Você poderá solicitar atualização ou remoção dos seus
+                          dados conforme as regras aplicáveis.
+                        </p>
+                        <label className="flex items-start gap-3 cursor-pointer group" htmlFor="termo">
+                          <div className="relative flex items-center justify-center mt-0.5 flex-shrink-0">
+                            <input
+                              id="termo"
+                              type="checkbox"
+                              checked={formData.termo_aceite}
+                              onChange={(e) => updateField("termo_aceite", e.target.checked)}
+                              className="peer appearance-none w-6 h-6 border-2 border-teal-300 rounded-lg
+                                checked:bg-teal-600 checked:border-teal-600 transition-all cursor-pointer
+                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-1"
+                              aria-required="true"
+                            />
+                            <CheckCircle2 className="absolute w-4 h-4 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" aria-hidden="true" />
+                          </div>
+                          <span className="text-sm text-slate-700 font-semibold select-none group-hover:text-teal-700 transition-colors leading-snug">
+                            Li e concordo com o uso dos meus dados para fins de triagem e acolhimento.
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Navigation buttons ───────────────────────────────────── */}
+                <div className="px-6 pb-6 sm:px-8 sm:pb-8 pt-0">
+                  <div className="border-t border-slate-100 pt-5 flex gap-3">
+                    {step > 1 && (
+                      <button
+                        type="button"
+                        onClick={prevStep}
+                        className="flex items-center justify-center gap-1.5 px-5 border border-slate-200
+                          text-slate-500 font-semibold py-3.5 rounded-xl hover:bg-slate-50 hover:text-slate-700
+                          transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-1"
+                        aria-label="Voltar ao passo anterior"
+                      >
+                        <ChevronLeft size={18} aria-hidden="true" />
+                        <span className="hidden sm:inline">Voltar</span>
+                      </button>
+                    )}
+
+                    {step < 5 ? (
+                      <button
+                        type="button"
+                        onClick={step === 3 && subStep < step3Questions.length - 1 ? nextSubStep : nextStep}
+                        className="flex-1 flex items-center justify-center gap-2
+                          bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl
+                          transition-all shadow-sm
+                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-1"
+                      >
+                        {step === 3 && subStep < step3Questions.length - 1 ? "Próxima pergunta" : "Próximo passo"}
+                        <ChevronRight size={18} aria-hidden="true" />
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex-1 flex items-center justify-center gap-2
+                          bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl
+                          transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed
+                          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-1"
+                        aria-label={isSubmitting ? "Enviando triagem..." : "Enviar triagem"}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" aria-hidden="true" />
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            Enviar triagem
+                            <ChevronRight size={18} aria-hidden="true" />
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
-              )}
+              </form>
 
-              {/* STEP 5: Legal Consent (LGPD) */}
-              {step === 5 && (
-                <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Consentimento LGPD</h3>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-600 leading-relaxed text-justify space-y-2 max-h-48 overflow-y-auto">
-                    <strong className="block text-slate-800 font-bold mb-1">Termo de Consentimento para Tratamento de Dados (LGPD)</strong>
-                    <p>
-                      Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/18), autorizo o NeuroAcolhe e a clínica parceira a coletar e tratar os dados de saúde descritos neste formulário.
-                    </p>
-                    <p>
-                      Essas informações serão mantidas sob sigilo profissional estrito e serão acessadas unicamente pela coordenação administrativa e pelos profissionais clínicos designados para fins de triagem de admissão e acompanhamento. Posso solicitar a exclusão de meus dados de triagem a qualquer momento, salvo as obrigações legais de manutenção de prontuário clínico.
-                    </p>
-                  </div>
+              {/* Mobile sticky hint */}
+              <p className="text-center text-xs text-slate-400 mt-2">
+                Seus dados são salvos automaticamente.
+              </p>
+            </div>
+          )}
+        </div>
+      </main>
 
-                  <div className="flex items-start gap-3">
-                    <input
-                      id="termo_aceite"
-                      type="checkbox"
-                      checked={formData.termo_aceite}
-                      onChange={(e) => updateField("termo_aceite", e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-1 cursor-pointer"
-                      required
-                    />
-                    <label htmlFor="termo_aceite" className="text-sm text-gray-700 font-medium select-none cursor-pointer leading-relaxed">
-                      Li e concordo com o Termo de Tratamento de Dados Pessoais de Saúde Sensíveis.
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* Footer navigation */}
-              <div className="flex gap-3 pt-6 border-t border-brand-border mt-6">
-                {step > 1 && (
-                  <button
-                    type="button"
-                    onClick={prevStep}
-                    className="flex-1 border border-brand-border hover:bg-brand-surface-soft text-brand-text-main font-bold py-3 rounded-xl transition-all"
-                  >
-                    Voltar
-                  </button>
-                )}
-                {step < 5 ? (
-                  <button
-                    type="button"
-                    onClick={nextStep}
-                    className="flex-1 bg-brand-primary hover:bg-brand-primary-dark text-white font-bold py-3 rounded-xl transition-all shadow-sm"
-                  >
-                    Avançar Passo
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 bg-brand-primary hover:bg-brand-primary-dark text-white font-bold py-3 rounded-xl transition-all shadow-sm disabled:opacity-75"
-                  >
-                    {isSubmitting ? "Enviando..." : "Enviar Triagem"}
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-        )}
-      </div>
+      {/* Mobile sticky bottom nav */}
+      <style>{`
+        @media (max-width: 639px) {
+          #main-content form > div:last-child {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #f1f5f9;
+            padding: 12px 16px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            z-index: 40;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-in { animation: none !important; }
+          .animate-ping { animation: none !important; }
+          .animate-spin { animation: none !important; }
+          * { transition-duration: 0.001ms !important; }
+        }
+      `}</style>
     </div>
   );
 };

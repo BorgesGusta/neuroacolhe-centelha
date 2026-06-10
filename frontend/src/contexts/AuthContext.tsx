@@ -23,8 +23,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     async function loadStorageData() {
-      const storagedUser = localStorage.getItem("@NeuroAcolhe:user");
-      const storagedToken = localStorage.getItem("@NeuroAcolhe:token");
+      const storagedUser = localStorage.getItem("@Nura:user");
+      const storagedToken = localStorage.getItem("@Nura:token");
 
       if (storagedUser && storagedToken) {
         api.defaults.headers.common["Authorization"] =
@@ -60,8 +60,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw new Error("Resposta de autenticação inválida.");
     }
 
-    localStorage.setItem("@NeuroAcolhe:user", JSON.stringify(usuarioFinal));
-    localStorage.setItem("@NeuroAcolhe:token", token);
+    localStorage.setItem("@Nura:user", JSON.stringify(usuarioFinal));
+    localStorage.setItem("@Nura:token", token);
 
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     setUser(usuarioFinal);

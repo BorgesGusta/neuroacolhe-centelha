@@ -1,0 +1,72 @@
+services:
+  # ─────────────────────────────────────────────
+  # Banco de Dados PostgreSQL
+  # ─────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: neuroacolhe_db_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: neuroacolhe_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # Backend (Node.js + Express + Prisma)
+  # ─────────────────────────────────────────────
+  backend:
+    container_name: neuroacolhe_backend_dev
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/neuroacolhe_db?schema=public
+      JWT_SECRET: neuroacolhe_jwt_secret_dev_2026
+      ALLOWED_ORIGINS: "http://localhost,http://localhost:80,http://localhost:5173"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    command: >
+      sh -c "npx prisma migrate deploy && npm run dev"
+
+  # ─────────────────────────────────────────────
+  # Frontend Dev (React + Vite)
+  # ─────────────────────────────────────────────
+  frontend:
+    container_name: neuroacolhe_frontend_dev
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:3000/api
+      CHOKIDAR_USEPOLLING: "true"
+      UV_THREADPOOL_SIZE: "64"
+      UV_USE_IO_URING: "0"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data_dev:

@@ -1,6 +1,6 @@
-# NeuroAcolhe Web - Frontend
+# Nura Web - Frontend
 
-Este é o diretório do frontend da plataforma NeuroAcolhe, desenvolvido em React com TypeScript, Vite e TailwindCSS.
+Este é o diretório do frontend da plataforma Nura, desenvolvido em React com TypeScript, Vite e TailwindCSS.
 
 ## 🚀 Como Rodar Localmente
 

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { getPatients, getCases, getAlerts, getAuditLogs, Patient, CareCase, Alert } from "../data/mockData";
 import { useAuth } from "../hooks/useAuth";
 import { Link } from "react-router-dom";
+import WellbeingAura from "../components/WellbeingAura";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -46,7 +47,7 @@ const Dashboard = () => {
           Olá, {user?.name || "Profissional"}!
         </h1>
         <p className="text-brand-primary-dark/80 max-w-xl text-sm leading-relaxed font-medium">
-          Bem-vindo ao painel do **NeuroAcolhe**. Aqui você gerencia a fila de acolhimento, evolui prontuários e acompanha as orientações da equipe.
+          Bem-vindo ao painel do **Nura**. Aqui você gerencia a fila de acolhimento, evolui prontuários e acompanha as orientações da equipe.
         </p>
       </div>
 
@@ -145,6 +146,55 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Engajamento e Jornada */}
+      <div className="bg-white rounded-2xl border border-brand-border shadow-sm p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-brand-text-main">Engajamento da Jornada</h2>
+            <p className="text-xs text-brand-text-muted mt-1">Check-ins, teleconsultas e status da comunicação com pacientes.</p>
+          </div>
+          <Link to="/app/notifications" className="text-xs font-semibold text-brand-primary hover:text-brand-primary-dark border border-brand-border px-3 py-1.5 rounded-lg">Gerenciar Comunicação</Link>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-brand-surface-soft border border-brand-border p-4 rounded-xl">
+            <span className="text-xs font-bold text-brand-text-muted uppercase tracking-wider block">Check-ins Hoje</span>
+            <div className="flex items-baseline gap-2 mt-2">
+              <span className="text-2xl font-black text-brand-secondary">12</span>
+              <span className="text-xs text-brand-text-muted font-medium">realizados</span>
+            </div>
+            <p className="text-[10px] text-brand-warning mt-2 font-medium">5 pacientes pendentes</p>
+          </div>
+          
+          <div className="bg-brand-surface-soft border border-brand-border p-4 rounded-xl">
+            <span className="text-xs font-bold text-brand-text-muted uppercase tracking-wider block">Teleconsultas</span>
+            <div className="flex items-baseline gap-2 mt-2">
+              <span className="text-2xl font-black text-brand-primary-dark">8</span>
+              <span className="text-xs text-brand-text-muted font-medium">agendadas hoje</span>
+            </div>
+            <Link to="/app/teleconsultas" className="text-[10px] text-brand-primary mt-2 font-medium block hover:underline">Ver agenda completa</Link>
+          </div>
+          
+          <div className="bg-brand-surface-soft border border-brand-border p-4 rounded-xl">
+            <span className="text-xs font-bold text-brand-text-muted uppercase tracking-wider block">Lembretes Enviados</span>
+            <div className="flex items-baseline gap-2 mt-2">
+              <span className="text-2xl font-black text-slate-700">45</span>
+              <span className="text-xs text-brand-text-muted font-medium">nesta semana</span>
+            </div>
+            <p className="text-[10px] text-brand-text-muted mt-2 font-medium">92% via WhatsApp</p>
+          </div>
+
+          <div className="bg-brand-surface-soft border border-brand-border p-4 rounded-xl">
+            <span className="text-xs font-bold text-brand-text-muted uppercase tracking-wider block">Risco de Evasão</span>
+            <div className="flex items-baseline gap-2 mt-2">
+              <span className="text-2xl font-black text-brand-danger">3</span>
+              <span className="text-xs text-brand-text-muted font-medium">pacientes</span>
+            </div>
+            <p className="text-[10px] text-brand-text-muted mt-2 font-medium">&gt; 14 dias sem check-in</p>
+          </div>
+        </div>
+      </div>
+
       {/* Main Grid split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Alerts and Cases */}
@@ -172,6 +222,29 @@ const Dashboard = () => {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Recent Check-ins */}
+          <div className="bg-white rounded-2xl border border-brand-border shadow-sm p-6">
+            <div className="flex items-center justify-between border-b border-brand-border pb-4 mb-4">
+              <h2 className="text-lg font-bold text-brand-text-main">Check-ins de Bem-estar Recentes</h2>
+              <Link to="/app/patients" className="text-xs font-semibold text-brand-primary hover:text-brand-primary-dark">Ver todos</Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {localPatients
+                .filter(p => p.currentAuraState)
+                .slice(0, 3)
+                .map(patient => (
+                <div key={patient.id} className="flex flex-col gap-2">
+                  <span className="text-xs font-bold text-brand-text-main truncate" title={patient.name}>{patient.name}</span>
+                  <WellbeingAura
+                    state={patient.currentAuraState || 'NEUTRAL'}
+                    lastCheckInAt={patient.lastCheckInAt}
+                    compact={true}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Cases list */}

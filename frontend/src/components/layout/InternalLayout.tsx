@@ -1,6 +1,6 @@
 // frontend/src/components/layout/InternalLayout.tsx
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
-import { LayoutDashboard, ClipboardList, Users, GraduationCap, Bell, Shield, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Users, GraduationCap, Bell, Shield, Settings, LogOut, MessageCircle, Video } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import AccessibilityPanel from "../shared/AccessibilityPanel";
 
@@ -22,7 +22,7 @@ const InternalLayout = () => {
     if (user?.institutionId === "inst-acolher") {
       return "Instituto Acolher";
     }
-    return "Instituição NeuroAcolhe";
+    return "Instituição Nura";
   };
 
   // Translate roles for display badge
@@ -45,6 +45,8 @@ const InternalLayout = () => {
     { path: "/app/care-queue", label: "Fila de Cuidado", icon: <ClipboardList size={20} /> },
     { path: "/app/cases", label: "Casos Clínicos", icon: <Users size={20} /> },
     { path: "/app/supervision", label: "Supervisão", icon: <GraduationCap size={20} /> },
+    { path: "/app/teleconsultas", label: "Teleconsultas", icon: <Video size={20} /> },
+    { path: "/app/notifications", label: "Notificações", icon: <MessageCircle size={20} /> },
     { path: "/app/alerts", label: "Alertas do Sistema", icon: <Bell size={20} /> },
     { path: "/app/audit", label: "Auditoria (LGPD)", icon: <Shield size={20} /> },
     { path: "/app/settings", label: "Configurações", icon: <Settings size={20} /> },
@@ -60,7 +62,7 @@ const InternalLayout = () => {
             <Shield size={20} className="stroke-[2.5]" />
           </div>
           <span className="text-lg font-bold tracking-tight text-brand-text-main flex items-center gap-1.5">
-            NeuroAcolhe
+            Nura
           </span>
         </div>
 

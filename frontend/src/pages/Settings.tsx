@@ -51,7 +51,7 @@ const Settings = () => {
                 </div>
                 <div>
                   <span className="text-[10px] text-gray-400 block font-semibold">Subdomínio Ativo</span>
-                  <span className="text-gray-800 font-mono font-bold">{inst.subdomain}.neuroacolhe.org</span>
+                  <span className="text-gray-800 font-mono font-bold">{inst.subdomain}.nura.org</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-gray-400 block font-semibold">Status de Cadastro</span>

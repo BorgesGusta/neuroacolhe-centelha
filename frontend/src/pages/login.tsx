@@ -25,9 +25,9 @@ const Login = () => {
     try {
       // Direct mock login check for local presentation
       if (
-        data.email === "helena@neuroacolhe.org" ||
-        data.email === "lucas@neuroacolhe.org" ||
-        data.email === "roberto@neuroacolhe.org"
+        data.email === "helena@nura.org" ||
+        data.email === "lucas@nura.org" ||
+        data.email === "roberto@nura.org"
       ) {
         if (data.senha_pura !== "senha123") {
           setErrorMsg("Senha incorreta. Use 'senha123' para os perfis de teste.");
@@ -37,16 +37,16 @@ const Login = () => {
 
         let role: 'ADMIN' | 'PROFESSIONAL' | 'SUPERVISOR' = 'PROFESSIONAL';
         let name = "Lucas Mendes";
-        if (data.email === "helena@neuroacolhe.org") {
+        if (data.email === "helena@nura.org") {
           role = "ADMIN";
           name = "Dra. Helena Vasconcelos";
-        } else if (data.email === "roberto@neuroacolhe.org") {
+        } else if (data.email === "roberto@nura.org") {
           role = "SUPERVISOR";
           name = "Dr. Roberto Albuquerque";
         }
 
         const mockUser = {
-          id: data.email === "helena@neuroacolhe.org" ? "usr-helena" : data.email === "lucas@neuroacolhe.org" ? "usr-lucas" : "usr-roberto",
+          id: data.email === "helena@nura.org" ? "usr-helena" : data.email === "lucas@nura.org" ? "usr-lucas" : "usr-roberto",
           name,
           email: data.email,
           role,
@@ -54,8 +54,8 @@ const Login = () => {
           active: true
         };
 
-        localStorage.setItem("@NeuroAcolhe:user", JSON.stringify(mockUser));
-        localStorage.setItem("@NeuroAcolhe:token", "mock-jwt-token-centelha");
+        localStorage.setItem("@Nura:user", JSON.stringify(mockUser));
+        localStorage.setItem("@Nura:token", "mock-jwt-token-centelha");
         
         // Reload page or navigate
         window.location.href = "/app/dashboard";
@@ -67,7 +67,7 @@ const Login = () => {
       navigate("/app/dashboard");
     } catch (err: any) {
       console.error(err);
-      setErrorMsg("Credenciais inválidas. Use os e-mails mockados (helena@neuroacolhe.org, lucas@neuroacolhe.org, roberto@neuroacolhe.org) com a senha 'senha123'.");
+      setErrorMsg("Credenciais inválidas. Use os e-mails mockados (helena@nura.org, lucas@nura.org, roberto@nura.org) com a senha 'senha123'.");
     } finally {
       setIsSubmitting(false);
     }
@@ -78,7 +78,7 @@ const Login = () => {
       <nav className="flex justify-between items-center p-6 md:px-12 relative z-50 border-b border-brand-border bg-white">
         <div className="flex items-center gap-6">
           <Link to="/" className="text-xl font-extrabold text-brand-primary-dark no-underline flex items-center gap-1.5">
-            <Shield className="text-brand-primary" size={24} /> NeuroAcolhe
+            <Shield className="text-brand-primary" size={24} /> Nura
           </Link>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-brand-border p-1">
@@ -105,7 +105,7 @@ const Login = () => {
               <input
                 type="email"
                 id="email"
-                placeholder="Ex: helena@neuroacolhe.org"
+                placeholder="Ex: helena@nura.org"
                 className="w-full rounded-xl border border-brand-border py-3 px-4 text-brand-text-main bg-brand-surface focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary"
                 {...register("email", { required: true })}
                 required
@@ -139,9 +139,9 @@ const Login = () => {
           <div className="bg-brand-surface-soft p-4 rounded-xl border border-brand-border text-xs text-brand-text-muted space-y-1.5 leading-normal">
             <span className="font-bold text-brand-text-main block">💡 Contas de Demonstração (Senha: `senha123`):</span>
             <ul className="list-disc pl-4 space-y-0.5">
-              <li><strong>Helena (Gestora):</strong> `helena@neuroacolhe.org`</li>
-              <li><strong>Lucas (Profissional):</strong> `lucas@neuroacolhe.org`</li>
-              <li><strong>Roberto (Supervisor):</strong> `roberto@neuroacolhe.org`</li>
+              <li><strong>Helena (Gestora):</strong> `helena@nura.org`</li>
+              <li><strong>Lucas (Profissional):</strong> `lucas@nura.org`</li>
+              <li><strong>Roberto (Supervisor):</strong> `roberto@nura.org`</li>
             </ul>
           </div>
         </div>
@@ -149,13 +149,13 @@ const Login = () => {
         {/* Value Proposition Blurb */}
         <div className="mt-8 text-center max-w-sm">
           <p className="text-xs text-brand-text-muted font-medium">
-            O NeuroAcolhe auxilia clínicas e instituições no processo de triagem e organização do fluxo de atendimento psicológico.
+            O Nura auxilia clínicas e instituições no processo de triagem e organização do fluxo de atendimento psicológico.
           </p>
         </div>
       </main>
 
       <footer className="py-6 px-8 text-center text-xs text-brand-text-muted border-t border-brand-border bg-white">
-        NeuroAcolhe &copy; 2026. Todos os acessos são auditados eletronicamente para fins de LGPD.
+        Nura &copy; 2026. Todos os acessos são auditados eletronicamente para fins de LGPD.
       </footer>
     </div>
   );

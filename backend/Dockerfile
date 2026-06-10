@@ -1,5 +1,5 @@
 # 1. Imagem Base
-FROM node:18-alpine
+FROM node:20-alpine
 
 # 2. Diretório de Trabalho
 WORKDIR /usr/src/app

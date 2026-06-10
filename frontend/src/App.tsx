@@ -20,6 +20,15 @@ import Supervision from "./pages/Supervision";
 import Alerts from "./pages/Alerts";
 import Audit from "./pages/Audit";
 import Settings from "./pages/Settings";
+import Notifications from "./pages/Notifications";
+import Teleconsultations from "./pages/Teleconsultations";
+
+import PatientPortalLayout from "./pages/patient/PatientPortalLayout";
+import PatientHome from "./pages/patient/PatientHome";
+import PatientProfile from "./pages/patient/PatientProfile";
+import PatientJourney from "./pages/patient/PatientJourney";
+import PatientCheckIn from "./pages/patient/PatientCheckIn";
+import PatientTeleconsultation from "./pages/patient/PatientTeleconsultation";
 
 function App() {
   return (
@@ -44,7 +53,18 @@ function App() {
             <Route path="alerts" element={<Alerts />} />
             <Route path="audit" element={<Audit />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="teleconsultas" element={<Teleconsultations />} />
           </Route>
+        </Route>
+
+        {/* Patient Portal Routes */}
+        <Route path="/paciente" element={<PatientPortalLayout />}>
+          <Route path="inicio" element={<PatientHome />} />
+          <Route path="perfil" element={<PatientProfile />} />
+          <Route path="jornada" element={<PatientJourney />} />
+          <Route path="check-in" element={<PatientCheckIn />} />
+          <Route path="teleconsulta" element={<PatientTeleconsultation />} />
         </Route>
 
         <Route path="*" element={<div>Página não encontrada</div>} />

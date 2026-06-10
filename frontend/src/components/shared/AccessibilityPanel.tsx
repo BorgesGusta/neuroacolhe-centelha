@@ -11,11 +11,11 @@ const AccessibilityPanel = () => {
 
   // Load configuration from localStorage on mount
   useEffect(() => {
-    const savedFontSize = localStorage.getItem("@NeuroAcolhe:acc:fontSize") as "normal" | "lg" | "xl" || "normal";
-    const savedContrast = localStorage.getItem("@NeuroAcolhe:acc:contrast") === "true";
-    const savedDyslexic = localStorage.getItem("@NeuroAcolhe:acc:dyslexic") === "true";
-    const savedReducedMotion = localStorage.getItem("@NeuroAcolhe:acc:reducedMotion") === "true";
-    const savedAccessibleFont = localStorage.getItem("@NeuroAcolhe:acc:accessibleFont") === "true";
+    const savedFontSize = localStorage.getItem("@Nura:acc:fontSize") as "normal" | "lg" | "xl" || "normal";
+    const savedContrast = localStorage.getItem("@Nura:acc:contrast") === "true";
+    const savedDyslexic = localStorage.getItem("@Nura:acc:dyslexic") === "true";
+    const savedReducedMotion = localStorage.getItem("@Nura:acc:reducedMotion") === "true";
+    const savedAccessibleFont = localStorage.getItem("@Nura:acc:accessibleFont") === "true";
 
     setFontSize(savedFontSize);
     setContrast(savedContrast);
@@ -79,35 +79,35 @@ const AccessibilityPanel = () => {
 
   const handleFontSizeChange = (size: "normal" | "lg" | "xl") => {
     setFontSize(size);
-    localStorage.setItem("@NeuroAcolhe:acc:fontSize", size);
+    localStorage.setItem("@Nura:acc:fontSize", size);
     applyConfigs({ fontSize: size, contrast, dyslexic, reducedMotion, accessibleFont });
   };
 
   const handleContrastToggle = () => {
     const newValue = !contrast;
     setContrast(newValue);
-    localStorage.setItem("@NeuroAcolhe:acc:contrast", String(newValue));
+    localStorage.setItem("@Nura:acc:contrast", String(newValue));
     applyConfigs({ fontSize, contrast: newValue, dyslexic, reducedMotion, accessibleFont });
   };
 
   const handleDyslexicToggle = () => {
     const newValue = !dyslexic;
     setDyslexic(newValue);
-    localStorage.setItem("@NeuroAcolhe:acc:dyslexic", String(newValue));
+    localStorage.setItem("@Nura:acc:dyslexic", String(newValue));
     applyConfigs({ fontSize, contrast, dyslexic: newValue, reducedMotion, accessibleFont });
   };
 
   const handleReducedMotionToggle = () => {
     const newValue = !reducedMotion;
     setReducedMotion(newValue);
-    localStorage.setItem("@NeuroAcolhe:acc:reducedMotion", String(newValue));
+    localStorage.setItem("@Nura:acc:reducedMotion", String(newValue));
     applyConfigs({ fontSize, contrast, dyslexic, reducedMotion: newValue, accessibleFont });
   };
 
   const handleAccessibleFontToggle = () => {
     const newValue = !accessibleFont;
     setAccessibleFont(newValue);
-    localStorage.setItem("@NeuroAcolhe:acc:accessibleFont", String(newValue));
+    localStorage.setItem("@Nura:acc:accessibleFont", String(newValue));
     applyConfigs({ fontSize, contrast, dyslexic, reducedMotion, accessibleFont: newValue });
   };
 
@@ -118,11 +118,11 @@ const AccessibilityPanel = () => {
     setReducedMotion(false);
     setAccessibleFont(false);
 
-    localStorage.setItem("@NeuroAcolhe:acc:fontSize", "normal");
-    localStorage.setItem("@NeuroAcolhe:acc:contrast", "false");
-    localStorage.setItem("@NeuroAcolhe:acc:dyslexic", "false");
-    localStorage.setItem("@NeuroAcolhe:acc:reducedMotion", "false");
-    localStorage.setItem("@NeuroAcolhe:acc:accessibleFont", "false");
+    localStorage.setItem("@Nura:acc:fontSize", "normal");
+    localStorage.setItem("@Nura:acc:contrast", "false");
+    localStorage.setItem("@Nura:acc:dyslexic", "false");
+    localStorage.setItem("@Nura:acc:reducedMotion", "false");
+    localStorage.setItem("@Nura:acc:accessibleFont", "false");
 
     applyConfigs({
       fontSize: "normal",

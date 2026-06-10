@@ -15,6 +15,7 @@ import {
   SessionNote, 
   SupervisionNote 
 } from "../data/mockData";
+import WellbeingAura from "../components/WellbeingAura";
 
 const CaseDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +36,9 @@ const CaseDetail = () => {
   
   const [selectedNoteIdForSupervision, setSelectedNoteIdForSupervision] = useState<string | undefined>(undefined);
   const [supervisionContent, setSupervisionContent] = useState("");
+  
+  // Tab navigation
+  const [activeTab, setActiveTab] = useState<"resumo" | "dados" | "triagem" | "checkins" | "teleconsultas" | "evolucoes" | "supervisao">("resumo");
 
   useEffect(() => {
     loadCaseData();
@@ -148,7 +152,34 @@ const CaseDetail = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Tabs Navigation */}
+      <div className="flex border-b border-brand-border overflow-x-auto hide-scrollbar">
+        {[
+          { id: "resumo", label: "Resumo Clínico" },
+          { id: "dados", label: "Dados Pessoais" },
+          { id: "triagem", label: "Triagem & Prioridade" },
+          { id: "checkins", label: "Check-ins" },
+          { id: "teleconsultas", label: "Teleconsultas" },
+          { id: "evolucoes", label: "Evoluções" },
+          { id: "supervisao", label: "Supervisão" }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 ${
+              activeTab === tab.id
+                ? "border-brand-primary text-brand-primary-dark"
+                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content: Resumo (Default Layout) */}
+      {activeTab === "resumo" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column (2 Cols): Session Timeline */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl border border-brand-border shadow-sm p-6">
@@ -333,6 +364,14 @@ const CaseDetail = () => {
             </div>
           </div>
 
+          {/* Current Wellbeing Check-in */}
+          {patient.currentAuraState && (
+            <div className="bg-white rounded-2xl border border-brand-border shadow-sm p-6 space-y-4">
+              <h3 className="text-sm font-extrabold text-brand-text-muted uppercase tracking-wider">Check-in Atual</h3>
+              <WellbeingAura state={patient.currentAuraState} lastCheckInAt={patient.lastCheckInAt} compact={false} showDisclaimer={true} />
+            </div>
+          )}
+
           {/* Accessibility Profile */}
           <div className="bg-white rounded-2xl border border-brand-border shadow-sm p-6 space-y-4">
             <h3 className="text-sm font-extrabold text-brand-text-muted uppercase tracking-wider">Preferências de Inclusão</h3>
@@ -360,7 +399,41 @@ const CaseDetail = () => {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      )}
+
+      {/* Tab Content: Evoluções */}
+      {activeTab === "evolucoes" && (
+        <div className="bg-white rounded-2xl border border-brand-border shadow-sm p-6">
+          <h2 className="text-lg font-bold text-brand-text-main border-b border-brand-border pb-3 mb-4">Diário Clínico / Prontuário</h2>
+          {notes.length === 0 ? (
+            <div className="text-center py-16 text-brand-text-muted text-sm">
+              Nenhuma sessão registrada para este caso.
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {notes.map((note) => (
+                <div key={note.id} className="relative pl-6 border-l-2 border-brand-border space-y-3 pb-6 last:pb-0">
+                  <span className="absolute -left-2 top-1.5 h-4 w-4 rounded-full bg-brand-primary border-2 border-white shadow-sm" />
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm text-brand-text-main">
+                      Sessão em {new Date(note.sessionDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-brand-text-main bg-brand-surface-soft p-4 rounded-xl border border-brand-border">{note.content}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Outras abas mockadas (Check-ins, Teleconsultas) */}
+      {["checkins", "teleconsultas", "dados", "triagem", "supervisao"].includes(activeTab) && (
+        <div className="bg-white rounded-2xl border border-brand-border shadow-sm p-12 text-center text-slate-500">
+          <p>Conteúdo da aba em desenvolvimento para demonstração.</p>
+        </div>
+      )}
 
       {/* MODAL: Add Session Note */}
       {showEvolutionModal && (
