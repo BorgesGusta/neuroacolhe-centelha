@@ -5,6 +5,8 @@ import api from "../services/api";
 import HeaderMenu from "../components/shared/HeaderMenu";
 const imgLogin = "/img-login.svg";
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+
 const RedefinirSenha = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
@@ -44,6 +46,18 @@ const RedefinirSenha = () => {
 
     setLoading(true);
     setMensagem({ texto: "", tipo: "" });
+
+    if (DEMO_MODE) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setMensagem({
+        texto:
+          "[Modo Demonstração] Senha redefinida com sucesso! Redirecionando para o login...",
+        tipo: "sucesso",
+      });
+      setLoading(false);
+      setTimeout(() => navigate("/login"), 3000);
+      return;
+    }
 
     try {
       await api.post("/redefinir-senha", { token, novaSenha });

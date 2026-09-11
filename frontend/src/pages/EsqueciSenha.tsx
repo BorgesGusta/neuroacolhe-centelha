@@ -4,6 +4,8 @@ import api from "../services/api";
 import HeaderMenu from "../components/shared/HeaderMenu";
 const imgLogin = "/img-login.svg";
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+
 const EsqueciSenha = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,6 +17,18 @@ const EsqueciSenha = () => {
 
     setLoading(true);
     setMensagem({ texto: "", tipo: "" });
+
+    if (DEMO_MODE) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setMensagem({
+        texto:
+          "[Modo Demonstração] Se o e-mail estiver cadastrado, um link de recuperação seria enviado.",
+        tipo: "sucesso",
+      });
+      setEmail("");
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await api.post("/esqueci-senha", { email });

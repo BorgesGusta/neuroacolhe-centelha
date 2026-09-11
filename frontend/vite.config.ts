@@ -1,7 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // GitHub Pages serve o site em https://<user>.github.io/nura_centelha/,
+  // então os assets precisam ser referenciados com esse subcaminho.
+  // Fora do modo "demo" (dev local / build Docker), continua "/".
+  base: mode === "demo" ? "/nura_centelha/" : "/",
   plugins: [react()],
   server: {
     port: 5173,
@@ -43,4 +47,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

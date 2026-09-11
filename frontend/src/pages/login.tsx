@@ -11,63 +11,40 @@ interface LoginFormInputs {
   senha_pura: string;
 }
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+const DEMO_PASSWORD = "demo123";
+const demoProfiles = [
+  { label: "Dra. Helena (Gestora)", email: "helena@nura.org" },
+  { label: "Lucas (Profissional)", email: "lucas@nura.org" },
+  { label: "Roberto (Supervisor)", email: "roberto@nura.org" },
+];
+
 const Login = () => {
-  const { register, handleSubmit } = useForm<LoginFormInputs>();
+  const { register, handleSubmit, setValue } = useForm<LoginFormInputs>();
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const fillDemoProfile = (email: string) => {
+    setValue("email", email);
+    setValue("senha_pura", DEMO_PASSWORD);
+  };
 
   const onSubmit = async (data: LoginFormInputs) => {
     setErrorMsg("");
     setIsSubmitting(true);
 
     try {
-      // Direct mock login check for local presentation
-      if (
-        data.email === "helena@nura.org" ||
-        data.email === "lucas@nura.org" ||
-        data.email === "roberto@nura.org"
-      ) {
-        if (data.senha_pura !== "senha123") {
-          setErrorMsg("Senha incorreta. Use 'senha123' para os perfis de teste.");
-          setIsSubmitting(false);
-          return;
-        }
-
-        let role: 'ADMIN' | 'PROFESSIONAL' | 'SUPERVISOR' = 'PROFESSIONAL';
-        let name = "Lucas Mendes";
-        if (data.email === "helena@nura.org") {
-          role = "ADMIN";
-          name = "Dra. Helena Vasconcelos";
-        } else if (data.email === "roberto@nura.org") {
-          role = "SUPERVISOR";
-          name = "Dr. Roberto Albuquerque";
-        }
-
-        const mockUser = {
-          id: data.email === "helena@nura.org" ? "usr-helena" : data.email === "lucas@nura.org" ? "usr-lucas" : "usr-roberto",
-          name,
-          email: data.email,
-          role,
-          institutionId: "inst-horizonte",
-          active: true
-        };
-
-        localStorage.setItem("@Nura:user", JSON.stringify(mockUser));
-        localStorage.setItem("@Nura:token", "mock-jwt-token-centelha");
-        
-        // Reload page or navigate
-        window.location.href = "/app/dashboard";
-        return;
-      }
-
-      // API fallback
       await signIn(data.email, data.senha_pura);
       navigate("/app/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setErrorMsg("Credenciais inválidas. Use os e-mails mockados (helena@nura.org, lucas@nura.org, roberto@nura.org) com a senha 'senha123'.");
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Credenciais inválidas. Tente novamente.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -135,15 +112,29 @@ const Login = () => {
             </div>
           </form>
 
-          {/* Test credentials helper */}
-          <div className="bg-brand-surface-soft p-4 rounded-xl border border-brand-border text-xs text-brand-text-muted space-y-1.5 leading-normal">
-            <span className="font-bold text-brand-text-main block">💡 Contas de Demonstração (Senha: `senha123`):</span>
-            <ul className="list-disc pl-4 space-y-0.5">
-              <li><strong>Helena (Gestora):</strong> `helena@nura.org`</li>
-              <li><strong>Lucas (Profissional):</strong> `lucas@nura.org`</li>
-              <li><strong>Roberto (Supervisor):</strong> `roberto@nura.org`</li>
-            </ul>
-          </div>
+          {/* Demo profile quick-access (only shown in demo builds) */}
+          {DEMO_MODE && (
+            <div className="bg-brand-surface-soft p-4 rounded-xl border border-brand-border text-xs text-brand-text-muted space-y-2.5 leading-normal">
+              <span className="font-bold text-brand-text-main block">
+                💡 Acesso Rápido (Modo Demonstração — senha: <code>demo123</code>)
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {demoProfiles.map((profile) => (
+                  <button
+                    key={profile.email}
+                    type="button"
+                    onClick={() => fillDemoProfile(profile.email)}
+                    className="px-3 py-2 rounded-lg border border-brand-border bg-white text-brand-text-main font-semibold hover:border-brand-primary hover:text-brand-primary transition-colors"
+                  >
+                    {profile.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-brand-text-muted">
+                Clique em um perfil para preencher os campos automaticamente. Você ainda pode digitar manualmente.
+              </p>
+            </div>
+          )}
         </div>
         
         {/* Value Proposition Blurb */}

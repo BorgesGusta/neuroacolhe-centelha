@@ -7,11 +7,24 @@ import axios, {
 const baseURL =
   import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+
 const api = axios.create({
   baseURL,
 });
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  // Guard defensivo: em modo demo (GitHub Pages) não há backend real disponível.
+  // Bloqueia qualquer chamada real que eventualmente não tenha sido migrada
+  // para os dados mockados, evitando erros de rede silenciosos/CORS.
+  if (DEMO_MODE) {
+    return Promise.reject(
+      new Error(
+        `[DEMO MODE] Chamada de API bloqueada: ${config.method?.toUpperCase()} ${config.url}`,
+      ),
+    );
+  }
+
   const token = localStorage.getItem("@Nura:token");
   if (!config.headers) config.headers = {} as AxiosRequestHeaders;
   if (token) {
